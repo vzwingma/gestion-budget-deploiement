@@ -1,0 +1,138 @@
+version: "3.7"
+services:
+# IHM
+  ihm-budgets:
+    image: vzwingmann/gestion_budget_ihm:${BUDGET_VERSION}
+    env_file:
+    - ihm.env
+    ports:
+      - "3010:8080"
+    restart: always
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "IHM"
+    depends_on:
+      - service-budgets
+      - service-comptes
+      - service-params
+      - service-utilisateurs
+    links: 
+      - service-budgets
+      - service-comptes
+      - service-params
+      - service-utilisateurs
+
+# Services
+  service-budgets:
+    image: vzwingmann/gestion_budget_services:budgets-${BUDGET_VERSION}
+    ports:
+      - "3020:8080"
+    env_file:
+    - services.env
+    restart: always
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "SVC BUDGETS"
+    depends_on:
+      - service-comptes
+      - service-params
+    links: 
+      - service-comptes
+      - service-params
+
+
+  service-comptes:
+    image: vzwingmann/gestion_budget_services:comptes-${BUDGET_VERSION}
+    ports:
+      - "3021:8080"
+    env_file:
+    - services.env
+    restart: always
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "SVC COMPTES"
+
+  service-params:
+    image: vzwingmann/gestion_budget_services:parametrages-${BUDGET_VERSION}
+    ports:
+      - "3022:8080"
+    env_file:
+    - services.env
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "SVC PARAMS"
+    restart: always
+
+  service-utilisateurs:
+    image: vzwingmann/gestion_budget_services:utilisateurs-${BUDGET_VERSION}
+    ports:
+      - "3023:8080"
+    env_file:
+    - services.env
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "SVC USERS"
+    restart: always
+# ELK
+  bdgt-elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.6.1
+    container_name: bdgt-elasticsearch
+    volumes:
+      - ${DOCKER_DK_ELASTICSEARCH_DATA_DIR}:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    environment:
+      - cluster.name=bdgt-elasticsearch-cluster
+      - node.name=bdgt-elasticsearch
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - node.data=true
+      - network.host=0.0.0.0
+      - discovery.seed_hosts=bdgt-elasticsearch
+      - cluster.initial_master_nodes=bdgt-elasticsearch
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: always
+
+  bdgt-logstash:
+    image: docker.elastic.co/logstash/logstash-oss:7.6.1
+    container_name: bdgt-logstash
+    expose:
+      - "12201"
+    ports:
+      - "12201:12201"
+      - "12201:12201/udp"
+    volumes:
+      - ${DOCKER_DK_ELASTICSEARCH_DATA_DIR}/logstash:/usr/share/logstash/pipeline/
+    environment:
+       TZ: Europe/Paris
+    depends_on:
+      - bdgt-elasticsearch
+    links:
+      - bdgt-elasticsearch
+    restart: always
+
+  bdgt-kibana:
+    image: docker.elastic.co/kibana/kibana-oss:7.6.1
+    container_name: bdgt-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://bdgt-elasticsearch:9200
+    depends_on:
+      - bdgt-elasticsearch
+    links:
+      - bdgt-elasticsearch
+    restart: always

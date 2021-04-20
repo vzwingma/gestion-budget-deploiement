@@ -1,0 +1,364 @@
+apiVersion: apps/v1
+##########################################################
+# Service de déploiement de BUDGET IHM
+##########################################################
+kind: Deployment
+metadata:
+  name: budget-ihm-deployment
+  labels:
+    app: bdgt-app
+    module: ihm
+    env: qua
+spec:
+# IHM
+# Nombre d'instance du POD 
+  replicas: 1
+  # Stratégie de déploiement
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: bdgt-app
+  template:
+    metadata:
+      labels:
+        app: bdgt-app
+        module: ihm
+        env: qua
+        
+    # Specification du pod
+    spec:
+      # Conteneurs docker du pod
+      containers:
+      - name: bdgt-ihm
+        image: vzwingmann/gestion_budget_ihm:snapshot
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080       
+        # Variables d'environment
+        envFrom:
+        - secretRef:
+            name: ihm-qua-secret
+         # Configuration limite des ressources
+        resources:
+           requests:
+             cpu: 500m
+             memory: 256Mi
+           limits:
+             cpu: 500m
+             memory: 2048Mi
+---
+# Service en frontal de l'IHM
+kind: Service
+apiVersion: v1
+metadata:
+  name: ihm-service
+  labels:
+    app: bdgt-app
+    module: ihm
+    env: qua
+spec:
+  type: LoadBalancer
+  selector:
+    module: ihm
+  ports:
+  - protocol: UDP
+    port: 4010
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+##########################################################
+# Service de déploiement de BUDGET Services BUDGETS
+##########################################################
+kind: Deployment
+metadata:
+  name: budget-svc-budgets-deployment
+  labels:
+    app: bdgt-app
+    module: svc-budgets
+    env: qua
+spec:
+# SERVICE BUDGETS
+# Nombre d'instance du POD 
+  replicas: 1
+  # Stratégie de réplication
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      module: svc-budgets
+  template:
+    metadata:
+      labels:
+        app: bdgt-app
+        module: svc-budgets
+        env: qua
+        
+    # Specification du pod
+    spec:
+      # Conteneurs docker du pod
+      containers:
+      - name: bdgt-svc-budgets
+        image: vzwingmann/gestion_budget_services:budgets-snapshot
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080       
+        # Variables d'environment
+        envFrom:
+        - configMapRef:
+            name: service-configmap
+        - secretRef:
+            name: service-secret
+         # Configuration limite des ressources
+        resources:
+           requests:
+             cpu: 500m
+             memory: 256Mi
+           limits:
+             cpu: 500m
+             memory: 2048Mi
+---
+# Service en frontal du service Budgets
+kind: Service
+apiVersion: v1
+metadata:
+  name: svc-budgets-service
+  labels:
+    app: bdgt-app
+    module: svc-budgets
+    env: qua
+spec:
+  type: LoadBalancer
+  selector:
+    module: svc-budgets
+  ports:
+  - protocol: TCP
+    port: 4020
+    targetPort: 8080
+---
+apiVersion: apps/v1
+##########################################################
+# Service de déploiement de BUDGET Services COMPTES
+##########################################################
+kind: Deployment
+metadata:
+  name: budget-svc-comptes-deployment
+  labels:
+    app: bdgt-app
+    module: svc-comptes
+    env: qua
+spec:
+# SERVICE BUDGETS
+# Nombre d'instance du POD 
+  replicas: 1
+  # Stratégie de réplication
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      module: svc-comptes
+  template:
+    metadata:
+      labels:
+        app: bdgt-app
+        module: svc-comptes
+        env: qua
+        
+    # Specification du pod
+    spec:
+      # Conteneurs docker du pod
+      containers:
+      - name: bdgt-svc-comptes
+        image: vzwingmann/gestion_budget_services:comptes-snapshot
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080       
+        # Variables d'environment
+        envFrom:
+        - configMapRef:
+            name: service-configmap
+        - secretRef:
+            name: service-secret
+         # Configuration limite des ressources
+        resources:
+           requests:
+             cpu: 500m
+             memory: 256Mi
+           limits:
+             cpu: 500m
+             memory: 2048Mi
+---
+# Service en frontal du service Comptes
+kind: Service
+apiVersion: v1
+metadata:
+  name: svc-comptes-service
+  labels:
+    app: bdgt-app
+    module: svc-comptes
+    env: qua
+spec:
+  type: LoadBalancer
+  selector:
+    module: svc-comptes
+  ports:
+  - protocol: TCP
+    port: 4021
+    targetPort: 8080
+---
+apiVersion: apps/v1
+##########################################################
+# Service de déploiement de BUDGET Services PARAMETRAGES
+##########################################################
+kind: Deployment
+metadata:
+  name: budget-svc-params-deployment
+  labels:
+    app: bdgt-app
+    module: svc-params
+    env: qua
+spec:
+# SERVICE PARAMETRAGES
+# Nombre d'instance du POD 
+  replicas: 1
+  # Stratégie de déploiement
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      module: svc-params
+  template:
+    metadata:
+      labels:
+        app: bdgt-app
+        module: svc-params
+        env: qua
+        
+    # Specification du pod
+    spec:
+      # Conteneurs docker du pod
+      containers:
+      - name: bdgt-svc-params
+        image: vzwingmann/gestion_budget_services:parametrages-snapshot
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080       
+        # Variables d'environment
+        envFrom:
+        - configMapRef:
+            name: service-configmap
+        - secretRef:
+            name: service-secret
+         # Configuration limite des ressources
+        resources:
+           requests:
+             cpu: 500m
+             memory: 256Mi
+           limits:
+             cpu: 500m
+             memory: 2048Mi
+---
+# Service en frontal du service Paramétrages
+kind: Service
+apiVersion: v1
+metadata:
+  name: svc-params-service
+  labels:
+    app: bdgt-app
+    module: svc-params
+    env: qua
+spec:
+  type: LoadBalancer
+  selector:
+    module: svc-params
+  ports:
+  - protocol: TCP
+    port: 4022
+    targetPort: 8080
+---
+apiVersion: apps/v1
+##########################################################
+# Service de déploiement de BUDGET Services UTILISATEURS
+##########################################################
+kind: Deployment
+metadata:
+  name: budget-svc-users-deployment
+  labels:
+    app: bdgt-app
+    module: svc-users
+    env: qua
+spec:
+# SERVICE UTILISATEURS
+# Nombre d'instance du POD 
+  replicas: 1
+  # Stratégie de déploiement
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      module: svc-users
+  template:
+    metadata:
+      labels:
+        app: bdgt-app
+        module: svc-users
+        env: qua
+        
+    # Specification du pod
+    spec:
+      # Conteneurs docker du pod
+      containers:
+      - name: bdgt-svc-users
+        image: vzwingmann/gestion_budget_services:utilisateurs-snapshot
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080       
+        # Variables d'environment
+        envFrom:
+        - configMapRef:
+            name: service-configmap
+        - secretRef:
+            name: service-secret
+         # Configuration limite des ressources
+        resources:
+           requests:
+             cpu: 500m
+             memory: 256Mi
+           limits:
+             cpu: 500m
+             memory: 2048Mi
+---
+# Service en frontal du service Paramétrages
+kind: Service
+apiVersion: v1
+metadata:
+  name: svc-users-service
+  labels:
+    app: bdgt-app
+    module: svc-users
+    env: qua
+spec:
+  type: LoadBalancer
+  selector:
+    module: svc-users
+  ports:
+  - protocol: TCP
+    port: 4023
+    targetPort: 8080
+   

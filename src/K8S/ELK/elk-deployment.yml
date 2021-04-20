@@ -1,0 +1,298 @@
+apiVersion: apps/v1
+#######################################################
+# Service de déploiement de ELK : LOGSTASH
+#######################################################
+kind: Deployment
+metadata:
+  name: elk-logstash-deployment
+  labels:
+    app: elk-app
+    module: logstash
+    env: local
+spec:
+# LOGSTASH
+# Nombre d'instance du POD 
+  replicas: 1
+  # Stratégie de réplication
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # how many pods we can add at a time
+      maxSurge: 1
+      # maxUnavailable define how many pods can be unavailable during the rolling update
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: elk-app
+  template:
+    metadata:
+      labels:
+        app: elk-app
+        module: logstash
+        env: local
+        
+    # Specification du pod
+    spec:
+      volumes:
+        # Nom du volume qui porte la config
+        - name: logstash-config-volume
+          configMap:
+            # Nom du secret qui contient la config
+            name: logstash-configmap
+      # Conteneurs docker du pod
+      containers:
+      - name: temp-logstash
+        image: docker.elastic.co/logstash/logstash-oss:7.6.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 12201       
+        volumeMounts:
+          # Nom du volume qui porte la config
+        - name: logstash-config-volume
+          mountPath: /usr/share/logstash/pipeline/ # Chemin dans le conteneur
+          readOnly: true
+        # Variables d'environment
+        env:
+        - name: TZ
+          value: "Europe/Paris"
+         # Configuration limite des ressources
+        resources:
+           requests:
+             cpu: 500m
+             memory: 256Mi
+           limits:
+             cpu: 500m
+             memory: 2048Mi
+---
+# Service en frontal de logstash
+kind: Service
+apiVersion: v1
+metadata:
+  name: logstash-service
+  labels:
+    app: elk-app
+    module: logstash
+    env: local
+spec:
+  type: LoadBalancer
+  selector:
+    module: logstash
+  ports:
+  - protocol: UDP
+    port: 12201
+    targetPort: 12201
+
+---
+
+apiVersion: apps/v1
+#######################################################
+# Service de déploiement de ELK : ELASTICSEARCH
+#######################################################
+kind: Deployment
+metadata:
+  name: elk-elastic-deployment
+  labels:
+    app: elk-app
+    module: elastic
+    env: local
+spec:
+# ELASTICSEARCH
+# Nombre d'instance du POD 
+  replicas: 1
+  # Stratégie de réplication
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # how many pods we can add at a time
+      maxSurge: 1
+      # maxUnavailable define how many pods can be unavailable during the rolling update
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      module: elastic
+  template:
+    metadata:
+      labels:
+        app: elk-app
+        module: elastic
+        env: local
+        
+    # Specification du pod
+    spec:
+#      volumes:
+        # Volume persistant pour les données 
+#        - name: elasticsearch-pv-storage
+#          persistentVolumeClaim:
+#            claimName: elasticsearch-pv-claim
+      # Conteneurs docker du pod
+      containers:
+      - name: bdgt-elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.6.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9200       
+        # Variables d'environment
+        envFrom:
+        - configMapRef:
+            name: elk-configmap
+#        volumeMounts:
+#        - mountPath: "/usr/share/elasticsearch/data"
+#          name: elasticsearch-pv-storage
+         # Configuration limite des ressources
+#        resources:
+#           requests:
+#             cpu: 500m
+#             memory: 256Mi
+#           limits:
+#             cpu: 500m
+#             memory: 2048Mi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: elasticsearch-pv
+  labels:
+    app: elk-app
+    module: volume
+    env: local
+spec:
+  capacity:
+    storage: 20Gi
+  # le champ volumeMode requiert l'activation de la "feature gate" Alpha BlockVolume
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: "C:\\Users\\vzwingma\\Documents\\projets\\perso\\_elk"
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - docker-desktop
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-pv-claim
+spec:
+  storageClassName: local-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+      
+---
+# Service en frontal d'elasticsearch
+kind: Service
+apiVersion: v1
+metadata:
+  name: elastic-service
+  labels:
+    app: elk-app
+    module: elastic
+    env: local
+spec:
+  type: LoadBalancer
+  selector:
+    module: elastic
+  ports:
+  - protocol: TCP
+    port: 9200
+    targetPort: 9200
+    
+---
+
+apiVersion: apps/v1
+#######################################################
+# Service de déploiement de ELK : KIBANA
+#######################################################
+kind: Deployment
+metadata:
+  name: elk-kibana-deployment
+  labels:
+    app: elk-app
+    module: kibana
+    env: local
+spec:
+# KIBANA
+# Nombre d'instance du POD 
+  replicas: 1
+  # Stratégie de réplication
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # how many pods we can add at a time
+      maxSurge: 1
+      # maxUnavailable define how many pods can be unavailable during the rolling update
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      module: kibana
+  template:
+    metadata:
+      labels:
+        app: elk-app
+        module: kibana
+        env: local
+        
+    # Specification du pod
+    spec:
+      # Conteneurs docker du pod
+      containers:
+      - name: bdgt-kibana
+        image: docker.elastic.co/kibana/kibana-oss:7.6.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5601       
+        # Variables d'environment
+        env:
+        - name: ELASTICSEARCH_HOSTS
+          value: "http://elastic-service:9200"
+         # Configuration limite des ressources
+        resources:
+           requests:
+             cpu: 500m
+             memory: 256Mi
+           limits:
+             cpu: 500m
+             memory: 2048Mi
+
+        # Définition des sondes de liveness et de readiness
+        livenessProbe:
+           httpGet:
+             path: /app/kibana
+             port: 5601
+           initialDelaySeconds: 60
+           periodSeconds: 30
+        readinessProbe:
+           httpGet:
+             path: /app/kibana
+             port: 5601
+           initialDelaySeconds: 60
+           periodSeconds: 30
+
+---
+# Service en frontal de kibana
+kind: Service
+apiVersion: v1
+metadata:
+  name: kibana-service
+  labels:
+    app: elk-app
+    module: kibana
+    env: local
+spec:
+  type: LoadBalancer
+  selector:
+    module: kibana
+  ports:
+  - protocol: TCP
+    port: 5601
+    targetPort: 5601
+    
