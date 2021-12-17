@@ -1,8 +1,8 @@
-version: "3.7"
+version: "3.9"
 services:
 # IHM
   ihm:
-    image: vzwingmann/gestion_budget_ihm_legacy:${BUDGET_VERSION}
+    image: vzwingmabudget/gestion_budget_ihm_legacy:${BUDGET_VERSION}
     env_file:
       - ihm.env
     ports:
@@ -26,7 +26,7 @@ services:
 
 # Services
   service-budgets:
-    image: vzwingmann/gestion_budget_services:budgets-${BUDGET_VERSION}
+    image: vzwingmabudget/gestion_budget_services:budgets-${BUDGET_VERSION}
     ports:
       - "5020:8080"
     env_file:
@@ -45,7 +45,7 @@ services:
       - service-params
 
   service-comptes:
-    image: vzwingmann/gestion_budget_services:comptes-${BUDGET_VERSION}
+    image: vzwingmabudget/gestion_budget_services:comptes-${BUDGET_VERSION}
     ports:
       - "5021:8080"
     env_file:
@@ -58,7 +58,7 @@ services:
 #        tag: "SVC COMPTES"     
 
   service-params:
-    image: vzwingmann/gestion_budget_services:parametrages-${BUDGET_VERSION}
+    image: vzwingmabudget/gestion_budget_services:parametrages-${BUDGET_VERSION}
     ports:
       - "5022:8080"
     env_file:
@@ -71,7 +71,7 @@ services:
     restart: always
 
   service-utilisateurs:
-    image: vzwingmann/gestion_budget_services:utilisateurs-${BUDGET_VERSION}
+    image: vzwingmabudget/gestion_budget_services:utilisateurs-${BUDGET_VERSION}
     ports:
       - "5023:8080"
     env_file:
