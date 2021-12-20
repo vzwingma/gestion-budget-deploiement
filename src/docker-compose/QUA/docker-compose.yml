@@ -1,0 +1,59 @@
+version: "3.7"
+services:
+# IHM
+  ihm-budgets:
+    image: vzwingmann/gestion_budget_ihm_legacy:${BUDGET_VERSION}
+    env_file:
+      - ihm.env
+    ports:
+      - "4010:8080"
+    restart: always
+    depends_on:
+      - service-budgets
+      - service-comptes
+      - service-params
+      - service-utilisateurs
+    links: 
+      - service-budgets
+      - service-comptes
+      - service-params
+      - service-utilisateurs
+
+# Services
+  service-budgets:
+    image: vzwingmann/gestion_budget_services:budgets-${BUDGET_VERSION}
+    ports:
+      - "4020:8080"
+    env_file:
+      - services.env
+    restart: always
+    depends_on:
+      - service-comptes
+      - service-params
+    links: 
+      - service-comptes
+      - service-params
+
+  service-comptes:
+    image: vzwingmann/gestion_budget_services:comptes-${BUDGET_VERSION}
+    ports:
+      - "4021:8080"
+    env_file:
+      - services.env
+    restart: always
+
+  service-params:
+    image: vzwingmann/gestion_budget_services:parametrages-${BUDGET_VERSION}
+    ports:
+      - "4022:8080"
+    env_file:
+      - services.env
+    restart: always
+
+  service-utilisateurs:
+    image: vzwingmann/gestion_budget_services:utilisateurs-${BUDGET_VERSION}
+    ports:
+      - "4023:8080"
+    env_file:
+      - services.env
+    restart: always
