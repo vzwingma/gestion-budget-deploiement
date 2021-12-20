@@ -1,5 +1,7 @@
 .idea
-/src/docker-compose/QUA
-/src/docker-compose/PROD
-src/K8S/QUA/
+/src/K8S/QUA/
 *.iml
+/src/docker-compose/QUA
+/src/docker-compose/QUA/backup
+/src/docker-compose/PROD
+/src/docker-compose/PROD/backup
