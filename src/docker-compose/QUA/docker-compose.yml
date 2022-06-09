@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3.9"
 services:
 # IHM
   ihm-budgets:
@@ -9,19 +9,19 @@ services:
       - "4010:8080"
     restart: always
     depends_on:
-      - service-budgets
+      - service-operations
       - service-comptes
       - service-params
       - service-utilisateurs
     links: 
-      - service-budgets
+      - service-operations
       - service-comptes
       - service-params
       - service-utilisateurs
 
 # Services
-  service-budgets:
-    image: vzwingmabudget/gestion_budget_services:budgets-${BUDGET_VERSION}
+  service-operations:
+    image: vzwingmabudget/gestion_budget_services:operations-${BUDGET_VERSION}
     ports:
       - "4020:8080"
     env_file:
