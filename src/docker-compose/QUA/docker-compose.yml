@@ -2,7 +2,7 @@ version: "3.9"
 services:
 # IHM
   ihm-budgets:
-    image: vzwingmabudget/gestion_budget_ihm_legacy:${BUDGET_VERSION}
+    image: vzwingmabudget/gestion_budget_ihm_legacy:snapshot
     env_file:
       - ihm.env
     ports:
