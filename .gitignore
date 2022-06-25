@@ -10,3 +10,5 @@
 /src/docker-compose/DEV/*.env
 /src/docker-compose/QUA/*.env
 /src/docker-compose/PROD/*.env
+/src/docker-compose/QUA/*.sh
+/src/docker-compose/PROD/*.sh
