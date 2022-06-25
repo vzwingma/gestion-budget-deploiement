@@ -7,5 +7,6 @@
 /src/docker-compose/PROD/backup
 /src/docker-compose/PROD/elk
 
-/src/docker-compose/QUA
-/src/docker-compose/PROD
+/src/docker-compose/DEV/*.env
+/src/docker-compose/QUA/*.env
+/src/docker-compose/PROD/*.env
