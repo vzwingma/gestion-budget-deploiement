@@ -1,0 +1,10 @@
+version: "3.7"
+services:
+# IHM
+  ihm-budgets:
+    image: vzwingmabudget/gestion_budget_ihm_legacy:${BUDGET_VERSION}
+    env_file:
+      - ihm.env
+    ports:
+      - "8010:8080"
+    restart: always
