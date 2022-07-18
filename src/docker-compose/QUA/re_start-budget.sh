@@ -1,5 +1,5 @@
 #/bin/bash
-DOCKER_PATH=/home/vzwingmann/budget-Rec
+DOCKER_PATH=/home/vzwingma/docker-compose/QUA
 
 echo ""
 echo "## Mise à jour des images docker ##"
