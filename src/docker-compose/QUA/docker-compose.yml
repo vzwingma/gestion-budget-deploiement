@@ -2,11 +2,11 @@ version: "3.9"
 services:
 # IHM
   ihm-budgets:
-    image: vzwingmabudget/gestion_budget_ihm_legacy:snapshot
+    image: vzwingmabudget/gestion_budget_ihm:snapshot
     env_file:
       - ihm.env
     ports:
-      - "4010:8080"
+      - "3000:3000"
     restart: always
     depends_on:
       - service-operations
