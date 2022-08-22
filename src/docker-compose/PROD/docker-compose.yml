@@ -23,7 +23,25 @@ services:
       - service-comptes
       - service-params
       - service-utilisateurs
-
+# IHM
+  ihm-budgets:
+    image: vzwingmabudget/gestion_budget_ihm:${BUDGET_VERSION}
+    env_file:
+      - ihm.env
+    ports:
+      - "5011:3000"
+    restart: always
+    depends_on:
+      - service-operations
+      - service-comptes
+      - service-params
+      - service-utilisateurs
+    links: 
+      - service-operations
+      - service-comptes
+      - service-params
+      - service-utilisateurs
+      
 # Services
   service-operations:
     image: vzwingmabudget/gestion_budget_services:operations-${BUDGET_VERSION}
