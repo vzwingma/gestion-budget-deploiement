@@ -1,29 +1,6 @@
 version: "3.9"
 services:
 # IHM
-  ihm:
-    image: vzwingmabudget/gestion_budget_ihm_legacy:latest
-    env_file:
-      - ihm.env
-    ports:
-      - "5010:8080"
-    restart: always
-#    logging:
-#      driver: gelf
-#      options:
-#        gelf-address: "udp://localhost:12201"
-#        tag: "IHM"     
-    depends_on:
-      - service-operations
-      - service-comptes
-      - service-params
-      - service-utilisateurs
-    links: 
-      - service-operations
-      - service-comptes
-      - service-params
-      - service-utilisateurs
-# IHM
   ihm-budgets:
     image: vzwingmabudget/gestion_budget_ihm:${BUDGET_VERSION}
     ports:
